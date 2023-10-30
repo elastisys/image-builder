@@ -9,5 +9,6 @@
   "iso_url": "https://old-releases.ubuntu.com/releases/jammy/ubuntu-22.04.2-live-server-amd64.iso",
   "os_display_name": "Ubuntu 22.04",
   "shutdown_command": "shutdown -P now",
-  "unmount_iso": "true"
+  "unmount_iso": "true",
+  "node_custom_roles_post": "byoh"
 }

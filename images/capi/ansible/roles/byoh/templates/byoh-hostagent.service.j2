@@ -1,0 +1,14 @@
+[Unit]
+Description="BYOH host agent"
+
+[Service]
+EnvironmentFile=-{{ byoh_hostagent_environment_file }}
+ExecStart=/usr/bin/byoh-hostagent --bootstrap-kubeconfig {{ byoh_bootstrap_kubeconfig_path }} \
+    --namespace $BYOH_NAMESPACE \
+    $BYOH_ARGS \
+    
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
