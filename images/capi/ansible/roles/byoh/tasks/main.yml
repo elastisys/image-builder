@@ -13,7 +13,7 @@
 
 - name: Make byoh config folder exists
   file:
-    path: {{ byoh_configuration_path }}
+    path: "{{ byoh_configuration_path }}"
     state: directory
     owner: root
     group: root

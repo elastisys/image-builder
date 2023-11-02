@@ -1,4 +1,4 @@
-byoh_agent_version: v0.3.0
+byoh_agent_version: v0.5.0
 byoh_configuration_path: /etc/kubernetes
 byoh_bootstrap_kubeconfig_path: "{{ byoh_configuration_path }}/byoh-bootstrap-kubeconfig.yaml"
 byoh_hostagent_extra_flags: "" # TODO make this a list of flags
