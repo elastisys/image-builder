@@ -34,7 +34,6 @@
   ansible.builtin.shell: |
     set -o pipefail
     dpkg-query -f '${binary:Package}\n' -W | grep grub | xargs apt-mark unhold
-
   args:
     executable: /bin/bash
   when: provider is defined and provider is search('maas')
