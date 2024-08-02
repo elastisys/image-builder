@@ -80,9 +80,6 @@
     - { path: /var/lib/apt/lists, state: absent, mode: "0755" }
     - { path: /var/lib/apt/lists, state: directory, mode: "0755" }
 
-- name: Get installed packages
-  ansible.builtin.package_facts:
-
 - name: Reset network interface IDs
   ansible.builtin.file:
     state: absent
