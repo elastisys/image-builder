@@ -18,8 +18,38 @@
     machine_id_mode: "0644"
 
 # This is required to ensure any apt upgrade will not break kubernetes
-- name: Tell Debian hosts not to change the Kubernetes versions with apt upgrade
+- name: Tell Debian hosts not to change the kuberetes versions with apt upgrade
   dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  when: ansible_pkg_mgr == 'apt'
+  changed_when: false
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - kubernetes-cni
+
+- name: Stop apt-daily services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - apt-daily.service
+    - apt-daily-upgrade.service
+
+- name: Disable unattended upgrades if installed
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    state: stopped
+    enabled: false
+  when: "'unattended-upgrades' in ansible_facts.packages"
+
+# The apt-daily/unattended-upgrades services may still be running from before
+# they were disabled above. Retry package selection changes until the dpkg frontend
+# lock is released to avoid a flaky race with concurrent apt activity.
+- name: Pin all installed packages
+  ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
   when: ansible_facts['pkg_mgr'] == 'apt'
