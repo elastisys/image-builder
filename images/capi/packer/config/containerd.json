@@ -6,4 +6,6 @@
   "containerd_sha256": "9fab9926e20ece5a0989c55a79b6e94c6d0927e06c287c2e0d80490b89da8237",
   "containerd_sha256_windows": "653b84c9e139a58809b7c402ad6080788fd5827f9253123105d4387393fb56de",
   "containerd_version": "1.7.27"
+  "runc_sha256": "e6e8c8049b1910fce58fa68c057aaa5f42cee2a73834df5e59e5da7612d2739d",
+  "runc_version": "1.2.3"
 }
