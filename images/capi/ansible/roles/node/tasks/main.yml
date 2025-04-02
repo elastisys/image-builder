@@ -137,3 +137,14 @@
 - name: Set default HOME_MODE in login.defs (Flatcar)
   ansible.builtin.shell: sed -ri "s/^#?HOME_MODE\>.*/HOME_MODE 0700/" /etc/login.defs
   when: ansible_os_family == "Flatcar"
+
+- name: Install downgraded kernel version
+  ansible.builtin.package:
+    name: linux-image-6.8.0-55-generic
+    state: present
+
+- name: Configure grub to use downgraded kernel version
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: ^GRUB_DEFAULT=.*$
+    line: GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux 6.8.0-55-generic"
