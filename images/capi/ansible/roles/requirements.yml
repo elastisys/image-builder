@@ -1,4 +1,4 @@
-dependencies:
+roles:
     - name: subuid_subgid
       version: main
       src: git@github.com:rwxd/ansible-role-subuid_subgid.git
