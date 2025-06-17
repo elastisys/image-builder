@@ -1,0 +1,6 @@
+dependencies:
+    - name: subuid_subgid
+      version: main
+      src: git@github.com:rwxd/ansible-role-subuid_subgid.git
+      scm: git
+

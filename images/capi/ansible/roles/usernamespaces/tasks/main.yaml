@@ -1,3 +1,4 @@
+
 - name: Add 'kubelet' user
   ansible.builtin.user:
     name: kubelet
