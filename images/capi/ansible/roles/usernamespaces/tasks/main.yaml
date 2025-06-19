@@ -3,7 +3,7 @@
   ansible.builtin.user:
     name: kubelet
 
-- name Set users
+- name: Set users
   set_facts:
     subid_users:
       - kubelet
