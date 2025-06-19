@@ -4,7 +4,7 @@
     name: kubelet
 
 - name: Set users
-  set_facts:
+  set_fact:
     subid_users:
       - kubelet
 
