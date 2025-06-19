@@ -1,0 +1,20 @@
+
+- name: Process subuid file
+  ansible.builtin.include_tasks:
+    file: subXid.yml
+  vars:
+    _filedesc: subuid
+    _filepath: "{{ subuid_file }}"
+    _xid: "{{ uid }}"
+  when:
+    - files in ['uid', 'both']
+
+- name: Process subgid file
+  ansible.builtin.include_tasks:
+    file: subXid.yml
+  vars:
+    _filedesc: subgid
+    _filepath: "{{ subgid_file }}"
+    _xid: "{{ uid }}"
+  when:
+    - files in ['gid', 'both']

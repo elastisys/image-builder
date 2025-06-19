@@ -1,0 +1,83 @@
+
+---
+- name: Set default values
+  ansible.builtin.set_fact:
+    _entries: []
+    _lines: []
+
+- name: >-
+    An issue with the `ansible.builtin.file` lookup when the files exist but
+    are empty happens so we switch to using `stat`, `block`, and `when` ...
+  ansible.builtin.stat:
+    path: "{{ _filepath }}"
+  register: _st
+
+- name: >-
+    Only use `ansible.builtin.command` when stat indicates the file actually
+    contains data
+  block:
+    - name: >-
+        Dump the file with `cat` to work around the `ansible.builtin.file`
+        lookup having issues
+      ansible.builtin.command:
+        argv:
+          - cat
+          - "{{ _filepath }}"
+      changed_when: false
+      register: _out
+
+    - name: Update `_lines` with the contents of the file
+      ansible.builtin.set_fact:
+        _lines: "{{ _out.stdout_lines }}"
+  when:
+    - _st.stat.size > 0
+
+- name: Turn each line into a dictionary in a list
+  ansible.builtin.set_fact:
+    _entries: "{{ [{'id': (entry | split(':'))[0], 'start': (entry | split(':'))[1], 'length': (entry | split(':'))[2]}] + _entries }}"
+  loop: "{{ _lines }}"
+  loop_control:
+    label: "Processing line for {{ (entry | split(':'))[0] }}"
+    loop_var: entry
+
+- name: Dump `_entries`
+  ansible.builtin.debug:
+    var: _entries
+    verbosity: 1
+
+- name: Fail if found and found_strategy is fail
+  ansible.builtin.fail:
+    msg: "ID '{{ _xid }}'' already exists in {{ _filedesc }}. Can not proceed"
+  when:
+    - found_strategy == "fail"
+    - _entries | selectattr('id', 'match', _xid) | length > 0
+
+- name: Calculate the next valid window
+  when:
+    - _entries | length > 0
+  block:
+    - name: Get highest start ID Entry
+      ansible.builtin.set_fact:
+        _highest_entry: "{{ (_entries | sort(attribute='start') | last) }}"
+
+    - name: Set next_free
+      ansible.builtin.set_fact:
+        _next_free: "{{ (_highest_entry.start | int) + (_highest_entry.length | int) }}"
+
+- name: Dump
+  ansible.builtin.debug:
+    msg:
+      - "_xid:[{{ _xid }}] : ( _entries | selectattr('id', 'match', _xid) | length ) ==> [{{ _entries | selectattr('id', 'match', _xid) | length  }}]"
+      - "Truthyness of that >0: [{{ (( _entries | selectattr('id', 'match', _xid) | length ) > 0 ) }}] "
+      - "found_strategy: [{{ found_strategy }}]"
+      - "Truthyness of  >0 and found_strategy != 'skip': [{{ (( _entries | selectattr('id', 'match', _xid) | length ) > 0 ) and (found_strategy != 'skip') }}] "
+
+- name: Update {{ _filedesc }} with new entry {{ _xid }}
+  ansible.builtin.lineinfile: # noqa name
+    path: "{{ _filepath }}"
+    line: "{{ _xid }}:{{ _next_free }}:{{ subxid_size }}"
+  diff: true
+  when:
+    - not ( (( _entries | selectattr('id', 'match', _xid) | length ) > 0 ) and ( found_strategy != 'skip' ) )
+    - _entries | selectattr('id', 'match', _xid) | length == 0
+...

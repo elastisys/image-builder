@@ -10,4 +10,7 @@
 
 - name: Generate subuids and subgid
   include_role:
-    name: subuid_subgid
+    name: subxid
+  vars:
+    subxid_size: 7208960
+    uid: kubelet

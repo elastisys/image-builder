@@ -1,5 +1,0 @@
-- name: Configure each user
-  ansible.builtin.include_tasks: configure-user.yml
-  loop: "{{ subid_users }}"
-  loop_control:
-    loop_var: "subid_user"
