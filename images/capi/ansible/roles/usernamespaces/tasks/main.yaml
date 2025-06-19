@@ -3,11 +3,6 @@
   ansible.builtin.user:
     name: kubelet
 
-- name: Set subuids and subgid users
-  set_fact:
-    subid_users:
-      - kubelet
-
 - name: Generate subuids and subgid
   include_role:
     name: subxid
