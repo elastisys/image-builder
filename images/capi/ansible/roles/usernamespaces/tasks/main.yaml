@@ -3,13 +3,14 @@
   ansible.builtin.user:
     name: kubelet
 
-- name: Generate subuids and subgid
+- name Set users
+  set_facts:
+    subid_users:
+      - kubelet
+
+- name: Generate subuids & subgids
   include_role:
-    name: subxid
+    name: subuid_subgid
   vars:
-    subxid_size: 7208960
-    uid: kubelet
-    files: both
-    found_strategy: fail
-    subuid_file: /etc/subuid
-    subgid_file: /etc/subgid
+    subuid_uids: 7208960
+    subgid_gids: 7208960
