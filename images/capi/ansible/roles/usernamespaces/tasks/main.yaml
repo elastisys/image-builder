@@ -14,3 +14,5 @@
   vars:
     subuid_uids: 7208960
     subgid_gids: 7208960
+    subuid_bitshift: 8
+    subgid_bitshift: 8
