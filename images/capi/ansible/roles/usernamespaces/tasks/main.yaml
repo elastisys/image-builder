@@ -11,8 +11,3 @@
 - name: Generate subuids & subgids
   include_role:
     name: subuid_subgid
-  vars:
-    subuid_uids: 7208960
-    subgid_gids: 7208960
-    subuid_bitshift: 8
-    subgid_bitshift: 8
