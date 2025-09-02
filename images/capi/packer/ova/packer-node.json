@@ -16,7 +16,7 @@
       "remote_password": "{{user `remote_password`}}",
       "remote_type": "{{user `remote_type`}}",
       "remote_username": "{{user `remote_username`}}",
-      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && {{user `shutdown_command`}}'",
+      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && rm -f /etc/sudoers.d/90-cloud-init-users && {{user `shutdown_command`}}'",
       "skip_compaction": "{{user `skip_compaction`}}",
       "source_path": "{{ user `source_path`}}",
       "ssh_password": "{{user `ssh_password`}}",
@@ -114,7 +114,7 @@
       "remote_password": "{{user `remote_password`}}",
       "remote_type": "{{user `remote_type`}}",
       "remote_username": "{{user `remote_username`}}",
-      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && {{user `shutdown_command`}}'",
+      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && rm -f /etc/sudoers.d/90-cloud-init-users && {{user `shutdown_command`}}'",
       "skip_compaction": "{{user `skip_compaction`}}",
       "ssh_password": "{{user `ssh_password`}}",
       "ssh_timeout": "4h",
@@ -140,6 +140,8 @@
         "{{user `boot_command_suffix`}}"
       ],
       "boot_wait": "{{user `boot_wait`}}",
+      "cd_files": "{{user `cd_content_location`}}",
+      "cd_label": "{{user `cd_label`}}",
       "cdrom_type": "{{user `cdrom_type`}}",
       "cluster": "{{user `cluster`}}",
       "communicator": "ssh",
@@ -172,6 +174,8 @@
         }
       ],
       "password": "{{user `password`}}",
+      "remote_cache_cleanup": "true",
+      "remove_cdrom": "true",
       "resource_pool": "{{user `resource_pool`}}",
       "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c '{{user `shutdown_command`}}'",
       "ssh_clear_authorized_keys": "false",
@@ -237,8 +241,10 @@
         }
       ],
       "password": "{{user `password`}}",
+      "remote_cache_cleanup": "true",
+      "remove_cdrom": "true",
       "resource_pool": "{{user `resource_pool`}}",
-      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && {{user `shutdown_command`}}'",
+      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && rm -f /etc/sudoers.d/90-cloud-init-users && {{user `shutdown_command`}}'",
       "ssh_password": "{{user `ssh_password`}}",
       "ssh_proxy_host": "{{user `ssh_proxy_host`}}",
       "ssh_proxy_port": "{{user `ssh_proxy_port`}}",
@@ -281,7 +287,7 @@
       "network": "{{user `network`}}",
       "password": "{{user `password`}}",
       "resource_pool": "{{user `resource_pool`}}",
-      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && {{user `shutdown_command`}}'",
+      "shutdown_command": "echo '{{user `ssh_password`}}' | sudo -S -E sh -c 'userdel -f -r {{user `ssh_username`}} && rm -f /etc/sudoers.d/{{user `ssh_username` }} && rm -f /etc/sudoers.d/90-cloud-init-users && {{user `shutdown_command`}}'",
       "ssh_password": "{{user `ssh_password`}}",
       "ssh_timeout": "4h",
       "ssh_username": "{{user `ssh_username`}}",
@@ -421,6 +427,14 @@
       "user": "{{user `ssh_username`}}"
     },
     {
+      "environment_vars": [
+        "ENABLE_DISK_PACKING={{user `enable_disk_packing`}}"
+      ],
+      "execute_command": "if [[ \"${ENABLE_DISK_PACKING}\" == *\"true\"* ]]; then chmod +x {{ .Path }}; sudo {{ .Path }}; fi",
+      "script": "./packer/files/ova/scripts/optimize-disk.sh",
+      "type": "shell"
+    },
+    {
       "arch": "{{user `goss_arch`}}",
       "download_path": "{{user `goss_download_path`}}",
       "except": [
@@ -447,6 +461,8 @@
         "OS_VERSION": "{{user `distro_version` | lower}}",
         "PROVIDER": "ova",
         "block_nouveau_loading": "{{user `block_nouveau_loading`}}",
+        "containerd_gvisor_runtime": "{{user `containerd_gvisor_runtime`}}",
+        "containerd_gvisor_version": "{{user `containerd_gvisor_version`}}",
         "containerd_version": "{{user `containerd_version`}}",
         "kubernetes_cni_deb_version": "{{ user `kubernetes_cni_deb_version` }}",
         "kubernetes_cni_rpm_version": "{{ split (user `kubernetes_cni_rpm_version`) \"-\" 0 }}",
@@ -476,14 +492,16 @@
     "cdrom_adapter_type": "ide",
     "cdrom_type": "ide",
     "cluster": "",
+    "containerd_service_url": "https://raw.githubusercontent.com/containerd/containerd/refs/tags/v{{user `containerd_version`}}/containerd.service",
     "containerd_sha256": null,
-    "containerd_url": "https://github.com/containerd/containerd/releases/download/v{{user `containerd_version`}}/cri-containerd-cni-{{user `containerd_version`}}-linux-amd64.tar.gz",
+    "containerd_url": "https://github.com/containerd/containerd/releases/download/v{{user `containerd_version`}}/containerd-{{user `containerd_version`}}-linux-amd64.tar.gz",
     "containerd_version": null,
     "crictl_url": "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{user `crictl_version`}}/crictl-v{{user `crictl_version`}}-linux-amd64.tar.gz",
     "crictl_version": null,
     "datastore": "",
     "destroy": "false",
     "disk_size": "20480",
+    "enable_disk_packing": "true",
     "existing_ansible_ssh_args": "{{env `ANSIBLE_SSH_ARGS`}}",
     "export_manifest": "none",
     "folder": "",
@@ -516,6 +534,9 @@
     "kubernetes_typed_version": "kube-{{user `kubernetes_semver`}}",
     "output_dir": "./output/{{user `build_version`}}",
     "resource_pool": "",
+    "runc_sha256": null,
+    "runc_url": "https://github.com/opencontainers/runc/releases/download/v{{user `runc_version`}}/runc.amd64",
+    "runc_version": null,
     "username": "",
     "vcenter_server": "",
     "vsphere_guest_os_type": null
