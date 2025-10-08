@@ -104,6 +104,20 @@
     group: root
     mode: "0644"
 
+- name: Create Kubernetes audit policy directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/audit-policy
+    state: directory
+    mode: '0755'
+
+- name: Drop Kubernetes audit policy file
+  ansible.builtin.copy:
+    src: files/etc/audit-policy/apiserver-audit-policy.yaml
+    dest: /etc/kubernetes/audit-policy/apiserver-audit-policy.yaml
+    owner: root
+    group: root
+    mode: "0644"
+    
 # TODO: This section will be deprecated once https://github.com/containerd/cri/issues/1131 is fixed. It is used to support ECR with containerd.
 - name: Check if Kubernetes container registry is using Amazon ECR
   ansible.builtin.set_fact:
