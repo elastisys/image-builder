@@ -1,0 +1,18 @@
+- name: add the ssh ca public key
+  ansible.builtin.copy:
+    dest: /etc/ssh/ssh_ca.pub
+    mode: "644"
+    src: ssh_ca.pub
+- name: set authorized principals
+  ansible.builtin.copy:
+    dest: /etc/ssh/authorized_principals
+    # Couldn't get this to use the `ssh_username` variable
+    content: |
+      ubuntu
+- name: add ssh ca settings
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/ca.conf
+    content: |
+      TrustedUserCAKeys /etc/ssh/ssh_ca.pub
+      AuthorizedPrincipalsFile /etc/ssh/authorized_principals
+
