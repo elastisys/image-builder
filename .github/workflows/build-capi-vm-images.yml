@@ -1,0 +1,47 @@
+name: Build CAPI VM image with manual input
+
+on:
+  # push:
+    
+  workflow_dispatch:
+    inputs:
+      version:
+        description: k8s version
+        required: true
+        type: string
+        default: "1.33.1"
+      tag:
+        description: ck8s capi version
+        required: true
+        type: string
+        default: "0.8"
+
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build-azure-image:
+    uses: ./.github/workflows/build-azure-capi-image.yml
+    with:
+      version: ${{ inputs.version || '1.33.1' }}
+      tag: ${{ inputs.tag || '0.8' }}
+    secrets: inherit
+  build-openstack-image:
+    uses: ./.github/workflows/build-openstack-capi-image.yml
+    with:
+      version: ${{ inputs.version || '1.33.1' }}
+      tag: ${{ inputs.tag || '0.8' }}
+  store-openstack-image-elastx:
+    uses: ./.github/workflows/store-openstack-capi-image-elastx.yml
+    needs: build-openstack-image
+    with:
+      version: ${{ inputs.version || '1.33.1' }}
+      tag: ${{ inputs.tag || '0.8' }}
+    secrets: inherit
+  # store-openstack-image-safespring:
+  #   uses: ./.github/workflows/store-openstack-capi-image-safespring.yml
+  #   needs: build-openstack-image
+  #   with:
+  #     version: ${{ inputs.version || '1.33.1' }}
+  #     tag: ${{ inputs.tag || '0.8' }}
+  #   secrets: inherit
