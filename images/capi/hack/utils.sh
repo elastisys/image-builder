@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Note: ansible-core v2.16.x requires Python >= 3.10.
-_version_ansible_core="2.15.13"
+# Note: ansible-core v2.18 supports Python 3.11-3.13.
+_version_ansible_core="2.18.15"
 
 case "${OSTYPE}" in
 linux*)
@@ -107,6 +107,9 @@ pip3_install() {
   ensure_py3
   if output=$(pip3 install --disable-pip-version-check --user "${@}" 2>&1); then
     echo "$output"
+  elif [[ $output == *"Can not perform a '--user' install"* ]]; then
+    >&2 echo "warning: '--user' install failed, retrying pip3 install without --user"
+    pip3 install --disable-pip-version-check "${@}"
   elif [[ $output == *"error: externally-managed-environment"* ]]; then
     >&2 echo "warning: externally-managed-environment, retrying pip3 install with --break-system-packages"
     pip3 install --disable-pip-version-check --user --break-system-packages "${@}"

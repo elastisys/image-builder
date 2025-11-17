@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 - name: Install gcloud SDK
-  when: ansible_os_family != "RedHat"
+  when: ansible_facts['os_family'] != "RedHat"
   block:
     - name: Download gcloud SDK
       ansible.builtin.get_url:
@@ -21,7 +21,7 @@
         dest: /tmp/install-gcloud.sh
         mode: "0700"
     - name: Execute install-gcloud.sh
-      ansible.builtin.shell: bash -o errexit -o pipefail /tmp/install-gcloud.sh --disable-prompts --install-dir=/
+      ansible.builtin.command: bash -o errexit -o pipefail /tmp/install-gcloud.sh --disable-prompts --install-dir=/
     - name: Remove install-gcloud.sh
       ansible.builtin.file:
         path: /tmp/install-gcloud.sh
@@ -39,7 +39,7 @@
       with_items: "{{ find.files }}"
 
 - name: Install gcloud SDK
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
   block:
     - name: Add gcloud repository info
       ansible.builtin.shell: |
@@ -53,23 +53,23 @@
         gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
         EOM
     - name: Install google-cloud-cli package
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: google-cloud-cli
         state: present
 
 - name: Install cloud-init packages
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name: "{{ packages }}"
     state: present
   vars:
     packages:
       - cloud-init
       - cloud-utils-growpart
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Disable Hyper-V KVP protocol daemon on Ubuntu
   ansible.builtin.systemd:
     name: hv-kvp-daemon
     state: stopped
     enabled: false
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"

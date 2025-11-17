@@ -1,8 +1,9 @@
 command:
 {{ if ne .Vars.OS "windows" }} # Linux Only
-  containerd --version | awk -F' ' '{print substr($3,2); }':
+  PATH=/opt/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin containerd --version | awk -F' ' '{print substr($3,2); }':
     exit-status: 0
-    stdout: []
+    stdout:
+    - "{{.Vars.containerd_version}}"
     stderr: []
     timeout: 0
   crictl ps:
@@ -10,27 +11,42 @@ command:
     stdout: []
     stderr: []
     timeout: 0
-{{if ne .Vars.containerd_wasm_shims_runtimes ""}}
+{{if and (semverCompare ">=2.0.0" .Vars.containerd_version) (ne .Vars.containerd_image_pull_progress_timeout "")}}
+  grep -E 'image_pull_progress_timeout = "{{.Vars.containerd_image_pull_progress_timeout}}"' /etc/containerd/config.toml:
+    exit-status: 0
+    stdout: [ ]
+    stderr: [ ]
+    timeout: 0
+{{end}}
+{{if contains "lunatic" .Vars.containerd_wasm_shims_runtimes}}
   containerd-shim-lunatic-v1:
     exit-status: 1
     stdout: [ ]
     stderr: ["io.containerd.lunatic.v1: InvalidArgument(\"Shim namespace cannot be empty\")"]
     timeout: 0
+{{end}}
+{{if contains "slight" .Vars.containerd_wasm_shims_runtimes}}
   containerd-shim-slight-v1:
     exit-status: 1
     stdout: [ ]
     stderr: ["io.containerd.slight.v1: InvalidArgument(\"Shim namespace cannot be empty\")"]
     timeout: 0
+{{end}}
+{{if contains "spin" .Vars.containerd_wasm_shims_runtimes}}
   containerd-shim-spin-v2:
     exit-status: 1
     stdout: [ ]
     stderr: ["io.containerd.spin.v2: InvalidArgument(\"Shim namespace cannot be empty\")"]
     timeout: 0
+{{end}}
+{{if contains "wws" .Vars.containerd_wasm_shims_runtimes}}
   containerd-shim-wws-v1:
     exit-status: 1
     stdout: [ ]
     stderr: ["io.containerd.wws.v1: InvalidArgument(\"Shim namespace cannot be empty\")"]
     timeout: 0
+{{end}}
+{{if ne .Vars.containerd_wasm_shims_runtimes ""}}
   grep -E 'io\.containerd\.(lunatic|slight|spin|wws)\.v' /etc/containerd/config.toml:
     exit-status: 0
     stdout: [ ]
@@ -190,25 +206,73 @@ command:
     - "{{.Vars.containerd_version}}"
     timeout: 30000
   {{ if (semverCompare ">=2.0.0" .Vars.containerd_version) }}
-  Correct Containerd config:
-    exec: "\"/Program Files/containerd/containerd.exe\" config dump"
+  Correct Containerd sandbox config:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'sandbox = \\\"{{.Vars.pause_image}}\\\"'\""
     exit-status: 0
     stdout:
     - "sandbox = \"{{.Vars.pause_image}}\""
+    timeout: 30000
+  {{ if ne .Vars.containerd_image_pull_progress_timeout "" }}
+  Correct Containerd image pull timeout config:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'image_pull_progress_timeout = \\\"{{.Vars.containerd_image_pull_progress_timeout}}\\\"'\""
+    exit-status: 0
+    stdout:
+    - "image_pull_progress_timeout = \"{{.Vars.containerd_image_pull_progress_timeout}}\""
+    timeout: 30000
+  {{ end }}
+  Correct Containerd CNI conf_dir:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'conf_dir = \\\"C:/etc/cni/net.d\\\"'\""
+    exit-status: 0
+    stdout:
     - "conf_dir = \"C:/etc/cni/net.d\""
+    timeout: 30000
+  Correct Containerd CNI bin_dir:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'bin_dir = \\\"C:/opt/cni/bin\\\"'\""
+    exit-status: 0
+    stdout:
     - "bin_dir = \"C:/opt/cni/bin\""
+    timeout: 30000
+  Correct Containerd root:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'root = \\\"C:\\\\ProgramData\\\\containerd\\\\root\\\"'\""
+    exit-status: 0
+    stdout:
     - "root = \"C:\\\\ProgramData\\\\containerd\\\\root\""
+    timeout: 30000
+  Correct Containerd state:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'state = \\\"C:\\\\ProgramData\\\\containerd\\\\state\\\"'\""
+    exit-status: 0
+    stdout:
     - "state = \"C:\\\\ProgramData\\\\containerd\\\\state\""
     timeout: 30000
   {{ else }}
-  Correct Containerd config:
-    exec: "\"/Program Files/containerd/containerd.exe\" config dump"
+  Correct Containerd sandbox config:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'sandbox_image = \\\"{{.Vars.pause_image}}\\\"'\""
     exit-status: 0
     stdout:
     - "sandbox_image = \"{{.Vars.pause_image}}\""
+    timeout: 30000
+  Correct Containerd CNI conf_dir:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'conf_dir = \\\"C:/etc/cni/net.d\\\"'\""
+    exit-status: 0
+    stdout:
     - "conf_dir = \"C:/etc/cni/net.d\""
+    timeout: 30000
+  Correct Containerd CNI bin_dir:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'bin_dir = \\\"C:/opt/cni/bin\\\"'\""
+    exit-status: 0
+    stdout:
     - "bin_dir = \"C:/opt/cni/bin\""
+    timeout: 30000
+  Correct Containerd root:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'root = \\\"C:\\\\ProgramData\\\\containerd\\\\root\\\"'\""
+    exit-status: 0
+    stdout:
     - "root = \"C:\\\\ProgramData\\\\containerd\\\\root\""
+    timeout: 30000
+  Correct Containerd state:
+    exec: "powershell -command \"Get-Content 'C:\\Program Files\\containerd\\config.toml' | Select-String -SimpleMatch 'state = \\\"C:\\\\ProgramData\\\\containerd\\\\state\\\"'\""
+    exit-status: 0
+    stdout:
     - "state = \"C:\\\\ProgramData\\\\containerd\\\\state\""
     timeout: 30000
   {{ end }}

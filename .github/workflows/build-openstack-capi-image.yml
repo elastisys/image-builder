@@ -1,0 +1,93 @@
+name: Build OpenStack VM CAPI image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Kubernetes version
+        required: true
+        type: string
+      tag:
+        description: ck8s-capi tag
+        required: true
+        type: string
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
+
+  workflow_call:
+    inputs:
+      version:
+        description: Kubernetes version
+        required: true
+        type: string
+      tag:
+        description: ck8s-capi tag
+        required: true
+        type: string
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
+
+
+env:
+  version: ${{ inputs.version }}
+  tag: ${{ inputs.tag }}
+  docker_image: ${{ inputs.builder_image }}
+
+defaults:
+  run:
+    working-directory: ./images/capi
+    shell: bash
+
+jobs:
+  build-image:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: run patchs
+        run: |
+          git apply patches/dockerfile.patch
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: replace variables
+        run: |
+          package="${version}-1.1"
+          series="${version%.*}"
+
+          sed -r \
+            -e "s/\\\$KUBERNETES_SERIES/${series}/" \
+            -e "s/\\\$KUBERNETES_VERSION/${version}/" \
+            -e "s/\\\$KUBERNETES_DEB_VERSION/${package}/" \
+            -e "s/\\\$IMAGE_TAG/${tag}/" \
+            <"template.json" >"kubernetes.json"
+
+      - name: add user
+        run: |
+          mkdir -p ${{ github.workspace }}/output
+          sudo useradd -ms /bin/bash imagebuilder
+          sudo chmod -R 777 ${{ github.workspace }}/output
+
+      - name: build openstack image
+        run: |
+          docker run --device=/dev/kvm -i --rm \
+           -e PACKER_VAR_FILES=/tmp/host/kubernetes.json -e PACKER_LOG -e PACKER_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+           -v ${{ github.workspace }}/images/capi:/tmp/host -v ${{ github.workspace }}/output:/home/imagebuilder/output:rw \
+           ${{ env.docker_image }} build-qemu-ubuntu-2404-efi
+
+      - name: store openstack image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-2404-efi-kube-${{ env.version }}-ck8s-capi-${{ env.tag }}
+          path: ${{ github.workspace }}/output/ubuntu-2404-efi-kube-${{ env.version }}-ck8s-capi-${{ env.tag }}

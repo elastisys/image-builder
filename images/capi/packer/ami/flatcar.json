@@ -5,7 +5,6 @@
   "ansible_extra_vars": "ansible_python_interpreter=/opt/bin/python",
   "arch": "amd64",
   "build_name": "flatcar-{{env `FLATCAR_CHANNEL`}}",
-  "crictl_source_type": "http",
   "distribution": "flatcar",
   "kubernetes_cni_source_type": "http",
   "kubernetes_source_type": "http",
@@ -16,5 +15,6 @@
   "sysusr_prefix": "/opt",
   "sysusrlocal_prefix": "/opt",
   "user_data": "",
-  "user_data_file": "packer/files/flatcar/ignition/bootstrap-cloud.json"
+  "user_data_file": "packer/files/flatcar/ignition/bootstrap-cloud.json",
+  "volume_size": "15"
 }

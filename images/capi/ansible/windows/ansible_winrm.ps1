@@ -12,11 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This file is from packer documentation: 
+# This file is from packer documentation:
 # https://www.packer.io/docs/provisioners/ansible.html#winrm-communicator
 # https://www.packer.io/docs/builders/amazon/ebs#connecting-to-windows-instances-using-winrm
 
-Set-ExecutionPolicy Unrestricted -Scope LocalMachine -Force -ErrorAction Ignore
+# Log execution policies at all scopes for diagnostics
+Write-Output "Current execution policy settings:"
+Get-ExecutionPolicy -List | Format-Table -AutoSize | Out-String | Write-Output
+
+# Only set execution policy if the current effective policy is more restrictive
+# than what we need. Policies like Bypass or Unrestricted are already sufficient.
+$currentPolicy = Get-ExecutionPolicy
+$sufficientPolicies = @('Bypass', 'Unrestricted')
+if ($currentPolicy -notin $sufficientPolicies) {
+    Write-Output "Effective execution policy '$currentPolicy' is insufficient, setting to Unrestricted"
+    try {
+        Set-ExecutionPolicy Unrestricted -Scope LocalMachine -Force -ErrorAction Stop
+        Write-Output "Execution policy set to Unrestricted"
+    } catch {
+        Write-Output "Failed to set execution policy: $_"
+    }
+} else {
+    Write-Output "Effective execution policy '$currentPolicy' is sufficient, skipping Set-ExecutionPolicy"
+}
 
 # Don't set this before Set-ExecutionPolicy as it throws an error
 $ErrorActionPreference = "stop"
@@ -43,6 +61,12 @@ cmd.exe /c winrm set "winrm/config/service/auth" '@{CredSSP="true"}'
 cmd.exe /c winrm set "winrm/config/listener?Address=*+Transport=HTTPS" "@{Port=`"5986`";Hostname=`"packer`";CertificateThumbprint=`"$($Cert.Thumbprint)`"}"
 cmd.exe /c netsh advfirewall firewall set rule group="remote administration" new enable=yes
 cmd.exe /c netsh firewall add portopening TCP 5986 "Port 5986"
-cmd.exe /c net stop winrm
 cmd.exe /c sc config winrm start= auto
-cmd.exe /c net start winrm
+
+# Restart WinRM via a scheduled task so the current session can finish
+# cleanly before the service cycles. This prevents Packer's WinRM
+# connection (which is running this script) from being severed mid-flight.
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-Command Restart-Service winrm -Force"
+$taskTrigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddSeconds(5))
+Register-ScheduledTask -TaskName "RestartWinRM" -Action $taskAction -Trigger $taskTrigger -User "SYSTEM" -RunLevel Highest -Force
+write-output "Scheduled WinRM restart in 5 seconds"

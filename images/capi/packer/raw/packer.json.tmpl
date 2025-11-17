@@ -134,6 +134,7 @@
         "PROVIDER": "raw",
         "containerd_gvisor_runtime": "{{user `containerd_gvisor_runtime`}}",
         "containerd_gvisor_version": "{{user `containerd_gvisor_version`}}",
+        "containerd_image_pull_progress_timeout": "{{user `containerd_image_pull_progress_timeout`}}",
         "containerd_version": "{{user `containerd_version`}}",
         "kubernetes_cni_deb_version": "{{ user `kubernetes_cni_deb_version` }}",
         "kubernetes_cni_rpm_version": "{{ split (user `kubernetes_cni_rpm_version`) \"-\" 0 }}",
@@ -142,7 +143,8 @@
         "kubernetes_deb_version": "{{ user `kubernetes_deb_version` }}",
         "kubernetes_rpm_version": "{{ split (user `kubernetes_rpm_version`) \"-\" 0  }}",
         "kubernetes_source_type": "{{user `kubernetes_source_type`}}",
-        "kubernetes_version": "{{user `kubernetes_semver` | replace \"v\" \"\" 1}}"
+        "kubernetes_version": "{{user `kubernetes_semver` | replace \"v\" \"\" 1}}",
+        "extra_kernel_boot_params": "{{ user `extra_kernel_boot_params` }}"
       },
       "version": "{{user `goss_version`}}"
     }
@@ -159,6 +161,7 @@
     "containerd_gvisor_runtime": "false",
     "containerd_gvisor_version": "latest",
     "containerd_version": null,
+    "containerd_image_pull_progress_timeout": null,
     "containerd_service_url": "https://raw.githubusercontent.com/containerd/containerd/refs/tags/v{{user `containerd_version`}}/containerd.service",
     "runc_version": null,
     "cpus": "1",

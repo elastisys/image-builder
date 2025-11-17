@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- ansible.builtin.import_tasks: rpm_repos.yml
+- name: Import RPM repository tasks
+  ansible.builtin.import_tasks: rpm_repos.yml
 
-- name: Perform a tdnf update
+- name: Perform a tdnf update  # noqa: package-latest
   ansible.builtin.dnf:
     name: "*"
     state: latest

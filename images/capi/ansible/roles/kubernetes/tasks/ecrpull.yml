@@ -7,7 +7,7 @@
     mode: "0600"
 
 - name: Get images list
-  ansible.builtin.shell: kubeadm config images list --config /etc/kubeadm.yml
+  ansible.builtin.command: kubeadm config images list --config /etc/kubeadm.yml
   register: images_list
 
 - name: Log into ECR
@@ -27,4 +27,4 @@
   ansible.builtin.file:
     path: /etc/kubeadm.yml
     state: absent
-  when: ansible_os_family != "Flatcar"
+  when: ansible_facts['os_family'] != "Flatcar"
