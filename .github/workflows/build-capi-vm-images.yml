@@ -1,8 +1,6 @@
 name: Build CAPI VM image with manual input
 
 on:
-  # push:
-    
   workflow_dispatch:
     inputs:
       version:
@@ -15,6 +13,11 @@ on:
         required: true
         type: string
         default: "0.8"
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
 
 env:
   PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -25,23 +28,11 @@ jobs:
     with:
       version: ${{ inputs.version || '1.33.1' }}
       tag: ${{ inputs.tag || '0.8' }}
+      docker_image: ${{ inputs.docker_image }}
     secrets: inherit
   build-openstack-image:
     uses: ./.github/workflows/build-openstack-capi-image.yml
     with:
       version: ${{ inputs.version || '1.33.1' }}
       tag: ${{ inputs.tag || '0.8' }}
-  store-openstack-image-elastx:
-    uses: ./.github/workflows/store-openstack-capi-image-elastx.yml
-    needs: build-openstack-image
-    with:
-      version: ${{ inputs.version || '1.33.1' }}
-      tag: ${{ inputs.tag || '0.8' }}
-    secrets: inherit
-  # store-openstack-image-safespring:
-  #   uses: ./.github/workflows/store-openstack-capi-image-safespring.yml
-  #   needs: build-openstack-image
-  #   with:
-  #     version: ${{ inputs.version || '1.33.1' }}
-  #     tag: ${{ inputs.tag || '0.8' }}
-  #   secrets: inherit
+      docker_image: ${{ inputs.docker_image }}
