@@ -55,7 +55,6 @@ COPY --chown=imagebuilder:imagebuilder hack hack/
 COPY --chown=imagebuilder:imagebuilder packer packer/
 COPY --chown=imagebuilder:imagebuilder Makefile Makefile
 COPY --chown=imagebuilder:imagebuilder azure_targets.sh azure_targets.sh
-COPY --chown=imagebuilder:imagebuilder template.json template.json
 
 ENV PATH="/home/imagebuilder/.local/bin:${PATH}"
 ENV PACKER_ARGS=''
