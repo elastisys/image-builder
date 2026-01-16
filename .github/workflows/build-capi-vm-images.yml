@@ -1,0 +1,38 @@
+name: Build CAPI VM image with manual input
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: k8s version
+        required: true
+        type: string
+        default: "1.33.1"
+      tag:
+        description: ck8s capi version
+        required: true
+        type: string
+        default: "0.8"
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
+
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build-azure-image:
+    uses: ./.github/workflows/build-azure-capi-image.yml
+    with:
+      version: ${{ inputs.version }}
+      tag: ${{ inputs.tag }}
+      docker_image: ${{ inputs.docker_image }}
+    secrets: inherit
+  build-openstack-image:
+    uses: ./.github/workflows/build-openstack-capi-image.yml
+    with:
+      version: ${{ inputs.version }}
+      tag: ${{ inputs.tag }}
+      docker_image: ${{ inputs.docker_image }}
