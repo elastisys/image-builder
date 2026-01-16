@@ -1,0 +1,91 @@
+name: Build Azure CAPI VM image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Kuberentes version
+        required: true
+        type: string
+      tag:
+        description: ck8s-capi tag
+        required: true
+        type: string
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
+
+  workflow_call:
+    inputs:
+      version:
+        description: Kubernetes version
+        required: true
+        type: string
+      tag:
+        description: ck8s-capi tag
+        required: true
+        type: string
+      builder_image:
+        description: image builder image
+        required: true
+        type: string
+        default: "ghcr.io/elastisys/image-builder-amd64:main"
+
+env:
+  version: ${{ inputs.version }}
+  tag: ${{ inputs.tag }}
+  docker_image: ${{ inputs.builder_image }}
+
+defaults:
+  run:
+    working-directory: ./images/capi
+    shell: bash
+
+jobs:
+  build-image:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: replace variables
+        run: |
+          package="${version}-1.1"
+          series="${version%.*}"
+
+          sed -r \
+            -e "s/\\\$KUBERNETES_SERIES/${series}/" \
+            -e "s/\\\$KUBERNETES_VERSION/${version}/" \
+            -e "s/\\\$KUBERNETES_DEB_VERSION/${package}/" \
+            -e "s/\\\$IMAGE_TAG/${tag}/" \
+            <"template.json" >"kubernetes.json"
+
+      - name: build azure image
+        run: |
+          image_name="ubuntu-2404-kube-${version%%-*}-ck8s-capi-${tag}"
+
+          export SIG_IMAGE_DEFINITION="${image_name}"
+          export SIG_PUBLISHER="elastisys"
+          export SIG_OFFER="ck8s-capi"
+          export SIG_SKU="${image_name}"
+
+          docker run -i --rm \
+          -e PACKER_VAR_FILES -e PACKER_GITHUB_API_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          -e SIG_IMAGE_DEFINITION -e SIG_PUBLISHER -e SIG_OFFER -e SIG_SKU \
+          -e AZURE_SUBSCRIPTION_ID -e AZURE_CLIENT_ID -e AZURE_CLIENT_SECRET -e AZURE_TENANT_ID -e AZURE_LOCATION \
+          -e RESOURCE_GROUP_NAME -e GALLERY_NAME -e BUILD_RESOURCE_GROUP_NAME \
+          -v ${{ github.workspace }}/images/capi:/tmp/host \
+          ${{ env.docker_image }} build-azure-sig-ubuntu-2404-gen2
+
+        env:
+          PACKER_VAR_FILES: /tmp/host/kubernetes.json
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+          RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP_NAME }}
+          GALLERY_NAME: ${{ secrets.GALLERY_NAME }}
+          BUILD_RESOURCE_GROUP_NAME: ${{ secrets.RESOURCE_GROUP_NAME }}

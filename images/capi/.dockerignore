@@ -9,3 +9,4 @@
 !packer
 !Makefile
 !azure_targets.sh
+!template.json
