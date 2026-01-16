@@ -26,7 +26,7 @@ jobs:
         run: make docker-build
         env:
           TAG: main
-          
+
       - name: run make docker-push
         run: make docker-push
         env:
