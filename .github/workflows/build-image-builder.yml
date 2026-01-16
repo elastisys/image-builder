@@ -1,0 +1,33 @@
+name: Build CAPI image builder
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: image-builder
+  REGISTRY: ghcr.io/elastisys
+
+jobs:
+  build-image-builder:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: "Login to GitHub Container Registry"
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: run make docker-build
+        run: make docker-build
+        env:
+          TAG: ${{ steps.get-tag.outputs.TAG }}
+
+      - name: run make docker-push
+        run: make docker-push
+        env:
+          TAG: ${{ steps.get-tag.outputs.TAG }}
