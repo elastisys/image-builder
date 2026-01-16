@@ -26,13 +26,13 @@ jobs:
   build-azure-image:
     uses: ./.github/workflows/build-azure-capi-image.yml
     with:
-      version: ${{ inputs.version || '1.33.1' }}
-      tag: ${{ inputs.tag || '0.8' }}
+      version: ${{ inputs.version }}
+      tag: ${{ inputs.tag }}
       docker_image: ${{ inputs.docker_image }}
     secrets: inherit
   build-openstack-image:
     uses: ./.github/workflows/build-openstack-capi-image.yml
     with:
-      version: ${{ inputs.version || '1.33.1' }}
-      tag: ${{ inputs.tag || '0.8' }}
+      version: ${{ inputs.version }}
+      tag: ${{ inputs.tag }}
       docker_image: ${{ inputs.docker_image }}
