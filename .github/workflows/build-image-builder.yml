@@ -25,9 +25,9 @@ jobs:
       - name: run make docker-build
         run: make docker-build
         env:
-          TAG: ${{ steps.get-tag.outputs.TAG }}
+          TAG: main
 
       - name: run make docker-push
         run: make docker-push
         env:
-          TAG: ${{ steps.get-tag.outputs.TAG }}
+          TAG: main
