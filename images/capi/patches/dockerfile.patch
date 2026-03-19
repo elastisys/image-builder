@@ -1,12 +1,3 @@
-diff --git a/images/capi/.dockerignore b/images/capi/.dockerignore
-index e474674ca..565293fe8 100644
---- a/images/capi/.dockerignore
-+++ b/images/capi/.dockerignore
-@@ -9,3 +9,4 @@
- !packer
- !Makefile
- !azure_targets.sh
-+!template.json
 diff --git a/images/capi/Dockerfile b/images/capi/Dockerfile
 index e9ace3ed6..c0bb40356 100644
 --- a/images/capi/Dockerfile
