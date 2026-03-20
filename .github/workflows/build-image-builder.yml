@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - linus/fix-git-apply
 
 env:
   IMAGE_NAME: image-builder
