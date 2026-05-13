@@ -97,10 +97,12 @@
     reboot: true
   when: windows_updates_category_names|length > 0
 
-- ansible.builtin.import_tasks: ssh-feature.yml
+- name: Import SSH feature tasks
+  ansible.builtin.import_tasks: ssh-feature.yml
   when: ssh_source_url == ""
 
-- ansible.builtin.import_tasks: ssh-archive.yml
+- name: Import SSH archive tasks
+  ansible.builtin.import_tasks: ssh-archive.yml
   when: ssh_source_url != ""
 
 - name: Set default SSH shell to Powershell
@@ -132,6 +134,16 @@
     data: 0
     type: dword
   when: distribution_version == "2022"
+
+# VPF changes to reduce lock contention
+- name: Apply networking fix for Windows 2025
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Policies\Microsoft\FeatureManagement\Overrides
+    state: present
+    name: 520997518
+    data: 1
+    type: dword
+  when: distribution_version == "2025"
 
 # Apply HNS flags for fixes that need to be enabled via Registry
 # these eventually get turned on automatically and can be removed in future releases

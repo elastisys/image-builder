@@ -91,8 +91,10 @@ photon_5_rpms: &photon_5_rpms
 arch: "amd64"
 containerd_gvisor_runtime: ""
 containerd_gvisor_version: ""
+containerd_image_pull_progress_timeout: ""
 containerd_version: ""
 containerd_wasm_shims_runtimes: ""
+extra_kernel_boot_params: ""
 kubernetes_cni_source_type: ""
 kubernetes_cni_version: ""
 kubernetes_source_type: ""
@@ -170,6 +172,18 @@ centos:
       cloud-init:
       cloud-utils-growpart:
       python2-pip:
+almalinux:
+  common-package: *common_rpms
+  ova:
+    package:
+      open-vm-tools:
+    os_version:
+    - distro_version: "8"
+      package:
+        <<: *rh8_rpms
+    - distro_version: "9"
+      package:
+        <<: *rh9_rpms
 flatcar:
   common-service:
     systemd-timesyncd:
@@ -188,6 +202,8 @@ flatcar:
   nutanix:
     command:
   hcloud:
+    command:
+  openstack:
     command:
 photon:
   common-service:

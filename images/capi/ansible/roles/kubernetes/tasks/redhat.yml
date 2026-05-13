@@ -21,7 +21,7 @@
     gpgkey: "{{ kubernetes_rpm_gpg_key }}"
 
 - name: Install Kubernetes
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name: "{{ packages }}"
     allow_downgrade: true
     state: present
@@ -33,4 +33,4 @@
       - kubelet-{{ kubernetes_rpm_version }}
       - kubeadm-{{ kubernetes_rpm_version }}
       - kubectl-{{ kubernetes_rpm_version }}
-      - kubernetes-cni{{ '-'+kubernetes_cni_rpm_version if kubernetes_cni_rpm_version else '' }}
+      - kubernetes-cni{{ '-' + kubernetes_cni_rpm_version if kubernetes_cni_rpm_version else '' }}

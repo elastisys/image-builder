@@ -84,6 +84,15 @@ class DataSourceEc2Kubernetes(DataSourceEc2.DataSourceEc2):
         )
         LOG.info("User-data before update:[\n%s]", self.userdata_raw)
         secret_userdata = "/etc/secret-userdata.txt"
+        # Check if secret-userdata.txt exists (written by boothook for MachineDeployment/ControlPlane nodes)
+        # For MachinePool (ASG), this file won't exist as userdata is passed directly via EC2 metadata
+        if not os.path.exists(secret_userdata):
+            LOG.info(
+                "Secret userdata file %s not found. Something might have failed or this is a MachinePool/ASG node."
+                "Using original userdata from EC2 metadata.",
+                secret_userdata,
+            )
+            return True
         # Get the boothook output, save it as user-data
         # TODO: work with upstream to put this somewhere more sensible like:
         # /var/lib/cloud/instances/{{v1.instance_id}}/ec2-kubernetes-userdata.txt
@@ -116,8 +125,17 @@ class DataSourceEc2Kubernetes(DataSourceEc2.DataSourceEc2):
 
 
 class DataSourceEc2KubernetesLocal(DataSourceEc2Kubernetes):
+    # init-local runs before networking is available. The parent
+    # DataSourceEc2._get_data() crawls the IMDS, which requires network.
+    # Without it the TCP connection retries for ~232s before timing out.
+    # Return False so cloud-init moves quickly to the init-network phase
+    # where DataSourceEc2Kubernetes runs with full network access.
     def _get_data(self):
-        return super(DataSourceEc2KubernetesLocal, self).get_data()
+        LOG.debug(
+            "Skipping metadata crawl in init-local phase (no network). "
+            "DataSourceEc2Kubernetes will run in init-network phase."
+        )
+        return False
 
 
 # Used to match classes to dependencies

@@ -12,11 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- ansible.builtin.include_tasks: bootstrap-flatcar.yml
+- name: Include Flatcar bootstrap tasks
+  ansible.builtin.include_tasks: bootstrap-flatcar.yml
 
 - name: Create system-environment-generators directory
   ansible.builtin.file:
     path: /etc/systemd/system-environment-generators
+    state: directory
+    mode: "0755"
+
+# Flatcar Stable 4593.2.0+ ships without /etc/sysctl.d/ pre-created. The
+# node role's sysctl tasks write to /etc/sysctl.d/99-sysctl.conf via the
+# ansible.posix.sysctl module, which uses mkstemp in the parent directory
+# and fails with FileNotFoundError when the directory is missing.
+- name: Create /etc/sysctl.d directory
+  ansible.builtin.file:
+    path: /etc/sysctl.d
     state: directory
     mode: "0755"
 
