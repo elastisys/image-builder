@@ -37,6 +37,10 @@
 
   args:
     executable: /bin/bash
+  register: sysprep_apt_mark_unhold_grub
+  until: sysprep_apt_mark_unhold_grub.rc == 0
+  retries: 30
+  delay: 10
   when: provider is defined and provider is search('maas')
 
 - name: Remove extra repos
