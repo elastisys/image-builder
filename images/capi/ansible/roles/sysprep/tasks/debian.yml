@@ -30,18 +30,18 @@
     - kubectl
     - kubernetes-cni
 
-- name: Unpin grub packages with apt-mark for MaaS
-  ansible.builtin.shell: |
-    set -o pipefail
-    dpkg-query -f '${binary:Package}\n' -W | grep grub | xargs apt-mark unhold
-
-  args:
-    executable: /bin/bash
-  register: sysprep_apt_mark_unhold_grub
-  until: sysprep_apt_mark_unhold_grub.rc == 0
+- name: Unpin grub packages for MaaS
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: install
+  loop: "{{ ansible_facts.packages.keys() | select('search', 'grub') | list }}"
+  register: sysprep_dpkg_selections_unhold_grub
+  until: sysprep_dpkg_selections_unhold_grub is not failed
   retries: 30
   delay: 10
-  when: provider is defined and provider is search('maas')
+  when:
+    - sysprep_hold_installed_packages | default(true) | bool
+    - provider is defined and provider is search('maas')
 
 - name: Remove extra repos
   ansible.builtin.file:
