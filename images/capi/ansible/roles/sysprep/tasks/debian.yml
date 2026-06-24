@@ -18,7 +18,7 @@
     machine_id_mode: "0644"
 
 # This is required to ensure any apt upgrade will not break kubernetes
-- name: Tell Debian hosts not to change the kuberetes versions with apt upgrade
+- name: Tell Debian hosts not to change the Kubernetes versions with apt upgrade
   dpkg_selections:
     name: "{{ item }}"
     selection: hold
