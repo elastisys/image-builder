@@ -87,6 +87,7 @@
     autoclean: true
     autoremove: true
     force_apt_get: true
+    lock_timeout: 300
 
 - name: Remove apt package lists
   ansible.builtin.file:
