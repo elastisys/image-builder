@@ -22,7 +22,7 @@
   dpkg_selections:
     name: "{{ item }}"
     selection: hold
-  when: ansible_pkg_mgr == 'apt'
+  when: ansible_facts['pkg_mgr'] == 'apt'
   changed_when: false
   with_items:
     - kubelet
