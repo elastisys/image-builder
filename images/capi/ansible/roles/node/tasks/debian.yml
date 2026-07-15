@@ -16,8 +16,8 @@
 # boot and intermittently hold the dpkg/apt frontend lock while later roles
 # (containerd, kubernetes, sysprep) install packages, causing flaky build
 # failures. Stop and mask them this early, before any package installs, so they
-# cannot race the build. sysprep also disables them, but that runs too late to
-# protect the install steps.
+# cannot race the build. sysprep re-enables them at the end of the build, but
+# that runs too late to protect the install steps.
 - name: Stop and mask apt-daily and unattended-upgrades units
   ansible.builtin.systemd:
     name: "{{ item }}"
