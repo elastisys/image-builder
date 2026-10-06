@@ -18,6 +18,11 @@ configuration without building the image.
 not create a new Make target or choose a different provider recipe. Add a target
 name when you need a new provider and OS combination.
 
+OpenStack and QEMU builds accept a `node_playbook` Packer variable to replace
+the node provisioning playbook. It defaults to `./ansible/node.yml`. Set it in
+a `PACKER_VAR_FILES` JSON file to use a downstream playbook while retaining
+the provider's existing VM creation, image publication and cleanup workflow.
+
 ## Create a local-only target
 
 Use this when you need to keep building an operating system version that Image

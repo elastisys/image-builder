@@ -71,7 +71,7 @@
         "{{user `ansible_user_vars`}}"
       ],
       "max_retries": 5,
-      "playbook_file": "./ansible/node.yml",
+      "playbook_file": "{{user `node_playbook`}}",
       "type": "ansible",
       "user": "core"
     },
@@ -155,6 +155,7 @@
     "kubernetes_series": null,
     "kubernetes_source_type": null,
     "runc_version": null,
+    "node_playbook": "./ansible/node.yml",
     "security_groups": "default",
     "ssh_username": "{{user `ssh_username`}}",
     "use_blockstorage_volume": "true",

@@ -136,7 +136,7 @@
         "{{user `ansible_scp_extra_args`}}"
       ],
       "max_retries": 5,
-      "playbook_file": "./ansible/node.yml",
+      "playbook_file": "{{user `node_playbook`}}",
       "type": "ansible",
       "user": "builder"
     },
@@ -238,6 +238,7 @@
     "kubernetes_source_type": null,
     "machine_id_mode": "444",
     "machine_type": "pc",
+    "node_playbook": "./ansible/node.yml",
     "memory": "2048",
     "oem_id": "",
     "output_directory": "./output/{{user `build_name`}}-kube-{{user `kubernetes_semver`}}",
